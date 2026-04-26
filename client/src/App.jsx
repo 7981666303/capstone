@@ -1,0 +1,50 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import FacultyDashboard from './pages/FacultyDashboard';
+import StudentDashboard from './pages/StudentDashboard';
+import Profile from './pages/Profile';
+import Login from './pages/Login';
+import Analytics from './pages/Analytics';
+import Generate from './pages/Generate';
+
+const RootRedirect = () => {
+  return <Navigate to="/login" />;
+};
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!user.role) return <Navigate to="/login" />;
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to={user.role === 'faculty' ? '/faculty' : '/student'} />;
+  }
+  return children;
+};
+
+function App() {
+  return (
+    <div className="flex justify-center min-h-screen bg-slate-950 font-sans antialiased text-text-main transition-colors duration-300 overflow-hidden">
+      <div className="w-full max-w-lg bg-[var(--bg-main)] min-h-screen flex flex-col relative shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border-x border-[var(--border-main)] overflow-x-hidden">
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/*" element={
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<RootRedirect />} />
+                  <Route path="/faculty" element={<ProtectedRoute allowedRoles={['faculty', 'admin']}><FacultyDashboard /></ProtectedRoute>} />
+                  <Route path="/student" element={<ProtectedRoute allowedRoles={['student', 'admin']}><StudentDashboard /></ProtectedRoute>} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/analytics" element={<ProtectedRoute allowedRoles={['faculty', 'admin']}><Analytics /></ProtectedRoute>} />
+                  <Route path="/generate" element={<ProtectedRoute allowedRoles={['faculty', 'admin']}><Generate /></ProtectedRoute>} />
+                </Routes>
+              </Layout>
+            } />
+          </Routes>
+        </Router>
+      </div>
+    </div>
+  );
+}
+
+export default App;
