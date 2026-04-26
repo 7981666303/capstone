@@ -18,20 +18,6 @@ const Login = () => {
         setIsLoading(true);
         setError('');
         try {
-            // -- OFFLINE UI TEST BYPASS --
-            // Bypasses the MongoDB IP whitelist error so you can test the UI!
-            if (formData.username === 'teacher' && formData.password === 'password123') {
-                localStorage.setItem('token', 'offline-demo-token');
-                localStorage.setItem('user', JSON.stringify({ 
-                    role: 'faculty', 
-                    username: 'Demo Teacher', 
-                    email: 'teacher@university.edu',
-                    department: 'Computer Science'
-                }));
-                navigate('/faculty');
-                return;
-            }
-            // ----------------------------
             const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: {
