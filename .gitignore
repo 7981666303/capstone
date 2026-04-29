@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Android / Gradle cache — NEVER commit these
+.gradle/
+**/.gradle/
+**/build/
+**/.android/
+*.bin
+*.dex
+*.apk
+*.aar
+*.mark
