@@ -18,7 +18,7 @@ const importData = async () => {
         await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI);
         console.log('MongoDB Connected...');
 
-        const file = 'timetable_ready_database (1).xlsx';
+        const file = path.join(__dirname, 'timetable_ready_database (1).xlsx');
 
         if (!fs.existsSync(file)) {
             console.log('Excel file not found — skipping seed (data may already be in DB).');
