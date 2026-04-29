@@ -2,11 +2,12 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI); 
-        // options like useNewUrlParser are no longer needed in Mongoose 6+
+        const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+        console.log('Connecting to MongoDB:', uri.replace(/:([^:@]{4})[^:@]*@/, ':****@')); // Log URI with password masked
+        await mongoose.connect(uri);
         console.log('MongoDB Connected...');
     } catch (err) {
-        console.error(err.message);
+        console.error('MongoDB connection error:', err.message);
         process.exit(1);
     }
 };

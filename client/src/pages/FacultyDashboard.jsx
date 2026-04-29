@@ -118,8 +118,10 @@ const FacultyDashboard = () => {
             // Initial auto-select and fetch for logged in user
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const profile = f.data.find(fac =>
-                fac.email?.toLowerCase() === user.username?.toLowerCase() ||
-                fac.name?.toLowerCase() === user.username?.toLowerCase()
+                (fac.email && fac.email.toLowerCase() === user.email?.toLowerCase()) ||
+                (fac.email && fac.email.toLowerCase() === user.username?.toLowerCase()) ||
+                (fac.name && fac.name.toLowerCase() === user.name?.toLowerCase()) ||
+                (fac.name && fac.name.toLowerCase() === user.username?.toLowerCase())
             );
 
             if (profile) {

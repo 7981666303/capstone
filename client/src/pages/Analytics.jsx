@@ -58,8 +58,9 @@ const Analytics = () => {
                         setActiveFilters(prev => ({ ...prev, batchId: profileRes.data.batch }));
                     } else if (profileRes.data.role === 'faculty') {
                         const fac = facRes.data.find(f => 
-                            f.email?.toLowerCase() === profileRes.data.email?.toLowerCase() ||
-                            f.name?.toLowerCase() === profileRes.data.username?.toLowerCase()
+                            (f.email && f.email.toLowerCase() === profileRes.data.email?.toLowerCase()) ||
+                            (f.name && f.name.toLowerCase() === profileRes.data.name?.toLowerCase()) ||
+                            (f.name && f.name.toLowerCase() === profileRes.data.username?.toLowerCase())
                         );
                         if (fac) setActiveFilters(prev => ({ ...prev, facultyId: fac._id }));
                     }

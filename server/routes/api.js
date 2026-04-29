@@ -124,34 +124,46 @@ router.get('/users/profile/:identifier', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password, role } = req.body;
+        console.log(`--- Login Attempt ---`);
+        console.log(`Identifier: ${username}`);
+        console.log(`Role: ${role}`);
+
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password are required' });
         }
 
-        // Find user by username or email
+        const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const identifier = username.trim();
+        const roleNormalized = role ? role.toString().trim().toLowerCase() : '';
+        const requestedRole = roleNormalized === 'teacher' ? 'faculty' : roleNormalized;
+
+        // Find user by username or email, case-insensitive
         const user = await User.findOne({
             $or: [
-                { username: username },
-                { email: username }
+                { username: new RegExp(`^${escapeRegExp(identifier)}$`, 'i') },
+                { email: new RegExp(`^${escapeRegExp(identifier)}$`, 'i') }
             ]
         });
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.log(`Result: User not found`);
+            return res.status(401).json({ error: 'Invalid credentials: User not found' });
         }
 
         // Check if the selected role matches the database role
-        if (role && user.role !== role) {
-            return res.status(401).json({ 
-                error: `Access Denied: Your account does not have ${role} privileges for this portal.` 
+        if (requestedRole && user.role.toLowerCase() !== requestedRole) {
+            console.log(`Result: Role mismatch (User is ${user.role}, attempted as ${role})`);
+            return res.status(401).json({
+                error: `Access Denied: Your account is registered as ${user.role}, not ${role}.`
             });
         }
 
-        // In a real app, we would use bcrypt.compare(password, user.password)
         if (user.password !== password) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.log(`Result: Password mismatch`);
+            return res.status(401).json({ error: 'Invalid credentials: Password incorrect' });
         }
 
+        console.log(`Result: Success!`);
         res.json({
             token: 'mock-jwt-token',
             user: {
@@ -163,6 +175,7 @@ router.post('/login', async (req, res) => {
             }
         });
     } catch (err) {
+        console.error('Login Error:', err);
         res.status(500).json({ error: err.message });
     }
 });

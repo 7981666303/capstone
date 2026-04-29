@@ -8,6 +8,7 @@ const Login = () => {
     const [role, setRole] = useState('faculty'); // 'faculty' or 'student'
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const apiBase = import.meta.env.VITE_API_URL || '';
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,7 +20,7 @@ const Login = () => {
         setError('');
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/login`,
+                `${apiBase}/api/login`,
                 {
                     method: 'POST',
                     headers: {
@@ -32,7 +33,10 @@ const Login = () => {
                     }),
                 });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type');
+            const data = contentType && contentType.includes('application/json')
+                ? await response.json()
+                : { error: `Server error (${response.status}): ${response.statusText || 'Unexpected response'}` };
 
             if (response.ok) {
                 localStorage.setItem('token', data.token);

@@ -6,4 +6,10 @@ distribution_response.json
 summary_response.json
 verification.log
 verification_output.txt
+
+# Large data files
 SmartClass_Final_Scaled (1).xlsx
+timetable_ready_database (1).xlsx
+duplicates_output.json
+*.xlsx
+*.json.bak

@@ -7,7 +7,7 @@
         "server": "npm run dev --prefix server",
         "dev": "npx concurrently \"npm run client\" \"npm run server\"",
         "build": "npm run build --prefix client",
-        "start": "NODE_ENV=production node server/index.js"
+        "start": "npx cross-env NODE_ENV=production node server/index.js"
     },
     "dependencies": {
         "concurrently": "^9.1.2",

@@ -8,11 +8,14 @@ const Batch = require('./models/Batch');
 const Timetable = require('./models/Timetable');
 const User = require('./models/User');
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const importData = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI);
+        const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+        if (!uri) throw new Error("MONGODB_URI is not defined in .env file");
+        await mongoose.connect(uri);
         console.log('MongoDB Connected...');
 
         const file = 'timetable_ready_database (1).xlsx';
@@ -85,7 +88,7 @@ const importData = async () => {
                     { email: row.Email },
                     {
                         username: row.Email,
-                        password: row.Password || 'password123',
+                        password: row.Password || row.password || 'password123',
                         role: 'faculty',
                         email: row.Email,
                         department: row.Department
@@ -121,7 +124,7 @@ const importData = async () => {
                     { email: row.Email },
                     {
                         username: row.Email,
-                        password: row.Password || 'password123',
+                        password: row.Password || row.password || 'password123',
                         role: 'student',
                         email: row.Email,
                         rollNumber: row.Student_ID,

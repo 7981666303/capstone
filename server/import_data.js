@@ -9,9 +9,11 @@ const Batch = require('./models/Batch');
 const Timetable = require('./models/Timetable');
 const User = require('./models/User');
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const importData = async () => {
+    console.log('=== Running Data Seed from Excel ===');
     try {
         await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI);
         console.log('MongoDB Connected...');
@@ -19,20 +21,10 @@ const importData = async () => {
         const file = 'timetable_ready_database (1).xlsx';
         const workbook = XLSX.readFile(file);
 
-        // 1. Clear existing data for a clean start
-        console.log('Clearing existing data...');
-        await Promise.all([
-            Classroom.deleteMany({}),
-            Faculty.deleteMany({}),
-            Subject.deleteMany({}),
-            Batch.deleteMany({}),
-            Timetable.deleteMany({}),
-            User.deleteMany({})
-        ]);
 
         // 1. Import Classrooms
-        if (workbook.Sheets['Classrooms']) {
-            const data = XLSX.utils.sheet_to_json(workbook.Sheets['Classrooms']);
+        if (workbook.Sheets['1. Rooms']) {
+            const data = XLSX.utils.sheet_to_json(workbook.Sheets['1. Rooms']);
             console.log(`Importing ${data.length} Classrooms...`);
             for (const row of data) {
                 await Classroom.findOneAndUpdate(
@@ -49,30 +41,33 @@ const importData = async () => {
         }
 
         // 2. Import Faculty & Create Users for them
-        if (workbook.Sheets['Teachers']) {
-            const data = XLSX.utils.sheet_to_json(workbook.Sheets['Teachers']);
+        if (workbook.Sheets['3. Faculty']) {
+            const data = XLSX.utils.sheet_to_json(workbook.Sheets['3. Faculty']);
             console.log(`Importing ${data.length} Teachers...`);
             for (const row of data) {
-                // Create Faculty entry
+                if (!row.Email) {
+                    console.warn(`Skipping faculty with no email: ${row.Faculty_Name}`);
+                    continue;
+                }
                 await Faculty.findOneAndUpdate(
-                    { email: row.email },
+                    { email: row.Email },
                     {
-                        name: row.name,
-                        email: row.email,
-                        department: row.department,
+                        name: row.Faculty_Name,
+                        email: row.Email,
+                        department: row.Department,
                         maxLoad: 12
                     },
                     { upsert: true }
                 );
                 // Create User entry
                 await User.findOneAndUpdate(
-                    { email: row.email },
+                    { email: row.Email },
                     {
-                        username: row.email,
-                        password: row.password || 'password123',
+                        username: row.Email,
+                        password: row.Password || 'password123',
                         role: 'faculty',
-                        email: row.email,
-                        department: row.department
+                        email: row.Email,
+                        department: row.Department
                     },
                     { upsert: true }
                 );
@@ -80,25 +75,25 @@ const importData = async () => {
         }
 
         // 3. Import Students
-        if (workbook.Sheets['Students']) {
-            const data = XLSX.utils.sheet_to_json(workbook.Sheets['Students']);
+        if (workbook.Sheets['6. Students']) {
+            const data = XLSX.utils.sheet_to_json(workbook.Sheets['6. Students']);
             console.log(`Importing ${data.length} Students...`);
             for (const row of data) {
-                if (!row.email) {
-                    console.warn(`Skipping student with no email: ${row.name}`);
+                if (!row.Email) {
+                    console.warn(`Skipping student with no email: ${row.Name}`);
                     continue;
                 }
                 await User.findOneAndUpdate(
-                    { email: row.email },
+                    { email: row.Email },
                     {
-                        username: row.email, // Use email as username to ensure uniqueness
-                        password: row.password || 'password123',
+                        username: row.Email, // Use email as username to ensure uniqueness
+                        password: row.Password || 'password123',
                         role: 'student',
-                        email: row.email,
-                        rollNumber: row.rollNumber,
-                        department: row.department,
-                        section: row.section,
-                        batch: row.batch
+                        email: row.Email,
+                        rollNumber: row.Student_ID,
+                        department: row.Program,
+                        section: row.Section,
+                        batch: row.Batch_Year
                     },
                     { upsert: true }
                 );
@@ -106,8 +101,8 @@ const importData = async () => {
         }
 
         // 4. Import Subjects
-        if (workbook.Sheets['Subjects']) {
-            const data = XLSX.utils.sheet_to_json(workbook.Sheets['Subjects']);
+        if (workbook.Sheets['2. Subjects']) {
+            const data = XLSX.utils.sheet_to_json(workbook.Sheets['2. Subjects']);
             console.log(`Importing ${data.length} Subjects...`);
             for (const row of data) {
                 await Subject.findOneAndUpdate(
@@ -186,12 +181,11 @@ const importData = async () => {
             }
         }
 
-        console.log('Data Import Completed Successfully!');
-        process.exit();
+        console.log('=== Data Seed Completed Successfully! ===');
     } catch (err) {
-        console.error('Error importing data:', err);
-        process.exit(1);
+        console.error('Error seeding data:', err);
+        throw err;
     }
 };
 
-importData();
+module.exports = importData;
