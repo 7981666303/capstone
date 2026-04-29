@@ -19,6 +19,12 @@ const importData = async () => {
         console.log('MongoDB Connected...');
 
         const file = 'timetable_ready_database (1).xlsx';
+
+        if (!fs.existsSync(file)) {
+            console.log('Excel file not found — skipping seed (data may already be in DB).');
+            return;
+        }
+
         const workbook = XLSX.readFile(file);
 
 
